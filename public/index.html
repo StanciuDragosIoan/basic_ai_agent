@@ -244,10 +244,41 @@ body {
         </form>
     </div>
 
-    <script>
-        const form = document.getElementById('chat-form');
-        const input = document.getElementById('input');
-        const messages = document.getElementById('messages');
+    <!-- <script>
+                const form = document.getElementById('chat-form');
+                const input = document.getElementById('input');
+                const messages = document.getElementById('messages');
+    
+                function addMessage(role, text) {
+                    const bubble = document.createElement('div');
+                    bubble.className = `bubble ${role}`;
+                    bubble.textContent = text;
+                    messages.appendChild(bubble);
+                    messages.scrollTop = messages.scrollHeight;
+                }
+    
+                form.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const text = input.value.trim();
+                    if (!text) return;
+    
+                    addMessage('user', text);
+                    input.value = '';
+    
+                    const res = await fetch('/chat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ message: text }),
+                    });
+    
+                    const data = await res.json();
+                    addMessage('bot', data.reply);
+                });
+            </script> -->
+<script>
+    const form = document.getElementById('chat-form');
+    const input = document.getElementById('input');
+    const messages = document.getElementById('messages');
 
         function addMessage(role, text) {
             const bubble = document.createElement('div');
@@ -262,19 +293,19 @@ body {
             const text = input.value.trim();
             if (!text) return;
 
-            addMessage('user', text);
-            input.value = '';
+        addMessage('user', text);
+        input.value = '';
 
-            const res = await fetch('/chat', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: text }),
-            });
-
-            const data = await res.json();
-            addMessage('bot', data.reply);
+        const res = await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: text }),
         });
-    </script>
+
+        const data = await res.json();
+        addMessage('bot', data.reply);
+    });
+        </script>
 </body>
 
 </html>
