@@ -1,13 +1,12 @@
 import Groq from 'groq-sdk';
 import readline from 'readline';
-
-// const groq = new Groq({
-//   apiKey: process.env.GROQ_API_KEY,
-// });
+import 'dotenv/config';
 
 const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
 });
+
+
 
 // Conversation memory
 const memory = [
