@@ -4,7 +4,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "node server.js --trace-warnings",
+    "build": "echo \"No build step required\""
   },
   "keywords": [],
   "author": "",
@@ -13,5 +14,6 @@
   "dependencies": {
     "dotenv": "^17.2.3",
     "groq-sdk": "^0.37.0"
-  }
+  },
+  "type": "module"
 }
