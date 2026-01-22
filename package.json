@@ -6,7 +6,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js --trace-warnings",
     "build": "echo \"No build step required\"",
-    "dev": "node local.js"
+    "dev": "node local.js",
+    "brainy": "node localBrainy.js"
   },
   "keywords": [],
   "author": "",
