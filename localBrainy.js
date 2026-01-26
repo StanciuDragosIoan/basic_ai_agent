@@ -1,6 +1,7 @@
 import express from 'express';
 import Groq from 'groq-sdk';
 import 'dotenv/config';
+import fs from 'fs';
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -8,6 +9,19 @@ const port = process.env.PORT || 5000;
 const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
 });
+
+// const knowledge = JSON.parse(fs.readFileSync('knowledge.json', 'utf8'));
+
+// const knowledgeText = knowledge
+//   .map((fact) => `Q: ${fact.question}\nA: ${fact.answer}`)
+//   .join('\n');
+
+const knowledgeRaw = fs.readFileSync('knowledge.md', 'utf8');
+
+const chunks = knowledgeRaw.split("###");
+
+
+console.log('test', JSON.stringify(chunks));
 
 // Conversation memory (per server instance)
 const memory = [
@@ -18,6 +32,8 @@ You are a helpful conversational AI agent.
 Your name is Brainy-chan.
 You remember the conversation.
 Be concise and clear.
+Use the following knowledge:
+  ${chunks}
     `,
   },
 ];

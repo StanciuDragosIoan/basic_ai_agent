@@ -1,16 +1,36 @@
 import Groq from 'groq-sdk';
+import fs from 'fs';
+
+import 'dotenv/config';
+
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const filePath = path.join(__dirname, 'knowledge.md');
+const content = fs.readFileSync(filePath, 'utf8');
+
 
 const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
 });
 
+const knowledgeRaw = fs.readFileSync(filePath, 'utf8');
+
+const chunks = knowledgeRaw.split('###');
 // Memory persists per function instance (good enough for personal projects)
 const memory = [
   {
     role: 'system',
     content: `
-You are Your name is Brainy-chan, a playful and spicy anime assistant.
-Be concise, friendly, and a little teasing.
+You are a helpful conversational AI agent.
+Your name is Brainy-chan.
+You remember the conversation.
+Be concise and clear.
+Use the following knowledge:
+  ${chunks}
     `,
   },
 ];
