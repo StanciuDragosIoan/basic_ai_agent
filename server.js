@@ -1,90 +1,83 @@
 import express from 'express';
-import Groq from 'groq-sdk';
-import 'dotenv/config';
-import fs from 'fs';
-const app = express();
-const port = process.env.PORT || 4000;
-import 'dotenv/config';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import fs from 'fs';
+import Groq from 'groq-sdk';
+import 'dotenv/config';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+const app = express();
+const PORT = process.env.PORT || 5000;
+
+// Serve static files
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Parse JSON
+app.use(express.json());
+
+// Load knowledge
 const filePath = path.join(__dirname, 'knowledge.md');
-
 const knowledgeRaw = fs.readFileSync(filePath, 'utf8');
-
 const chunks = knowledgeRaw.split('###');
 
-const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY,
-});
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
-// Conversation memory (per server instance)
+// Simple in-memory memory
 const memory = [
   {
     role: 'system',
     content: `
-You are a helpful conversational AI agent.
-Your name is Ai-chan.
-You remember the conversation.
-Be concise and clear.
+You are a helpful AI.
+Your name is Brainy-chan.
 Use the following knowledge:
-  ${chunks}
+${chunks}
     `,
   },
 ];
 
-// Middleware
-app.use(express.json());
-app.use(express.static('public')); // make sure folder exists
-
-// Chat endpoint
+// API route
 app.post('/api/chat', async (req, res) => {
   try {
     const { message } = req.body;
-
     memory.push({ role: 'user', content: message });
 
     const response = await groq.chat.completions.create({
-      model: 'llama-3.1-8b-instant', // ✅ fixed model name
+      model: 'llama-3.1-8b-instant',
       messages: memory,
     });
 
     const reply = response.choices[0].message.content;
-
     memory.push({ role: 'assistant', content: reply });
 
     res.json({ reply });
   } catch (err) {
-    console.error('Error in /chat:', err);
-    res.status(500).json({ error: 'Something went wrong' });
+    console.error(err);
+    res.status(500).json({ error: 'AI-chan failed 😭' });
   }
 });
 
 app.post('/api/chat_brainy', async (req, res) => {
   try {
     const { message } = req.body;
-
     memory.push({ role: 'user', content: message });
 
     const response = await groq.chat.completions.create({
-      model: 'llama-3.1-8b-instant', // ✅ fixed model name
+      model: 'llama-3.1-8b-instant',
       messages: memory,
     });
 
     const reply = response.choices[0].message.content;
-
     memory.push({ role: 'assistant', content: reply });
 
     res.json({ reply });
   } catch (err) {
-    console.error('Error in /chat:', err);
-    res.status(500).json({ error: 'Something went wrong' });
+    console.error(err);
+    res.status(500).json({ error: 'AI-chan failed 😭' });
   }
 });
 
-app.listen(port, () => {
-  console.log(`🤖 AI-chan running at http://localhost:${port}`);
+app.listen(PORT, () => {
+  console.log(`Local server running: http://localhost:${PORT}`);
 });

@@ -1,18 +1,16 @@
 {
   "name": "aiagent",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js --trace-warnings",
-    "build": "echo \"No build step required\"",
-    "dev": "nodemon local.js",
-    "brainyLocal": "nodemon localBrainy.js"
+    "dev": "nodemon server.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "echo \"No build step required\""
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
   "dependencies": {
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
