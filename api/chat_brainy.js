@@ -10,7 +10,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const filePath = path.join(__dirname, 'knowledge.md');
-const content = fs.readFileSync(filePath, 'utf8');
+
 
 
 const groq = new Groq({
@@ -35,6 +35,7 @@ Use the following knowledge:
   },
 ];
 
+console.log('test', JSON.stringify(memory, null, 2));
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
