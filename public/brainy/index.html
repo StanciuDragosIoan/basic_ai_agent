@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <title>Brainy-chan 🧠</title>
-    <link rel="stylesheet" href="/brainy/style.css" />
+    <link rel="stylesheet" href="/style.css" />
 
 </head>
 
@@ -55,6 +55,8 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ message: text }),
             });
+
+            console.log("RES", JSON.stringify(res, null, 2))
 
             const data = await res.json();
             addMessage('bot', data.reply);

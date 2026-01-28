@@ -1,64 +1,90 @@
-import Groq from 'groq-sdk';
-import readline from 'readline';
-import 'dotenv/config';
 import express from 'express';
-// const groq = new Groq({
-//   apiKey: process.env.GROQ_API_KEY,
-// });
-
+import Groq from 'groq-sdk';
+import 'dotenv/config';
+import fs from 'fs';
 const app = express();
+const port = process.env.PORT || 4000;
+import 'dotenv/config';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const filePath = path.join(__dirname, 'knowledge.md');
+
+const knowledgeRaw = fs.readFileSync(filePath, 'utf8');
+
+const chunks = knowledgeRaw.split('###');
 
 const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
 });
 
-// Conversation memory
+// Conversation memory (per server instance)
 const memory = [
   {
     role: 'system',
     content: `
 You are a helpful conversational AI agent.
+Your name is Ai-chan.
 You remember the conversation.
 Be concise and clear.
+Use the following knowledge:
+  ${chunks}
     `,
   },
 ];
 
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout,
+// Middleware
+app.use(express.json());
+app.use(express.static('public')); // make sure folder exists
+
+// Chat endpoint
+app.post('/api/chat', async (req, res) => {
+  try {
+    const { message } = req.body;
+
+    memory.push({ role: 'user', content: message });
+
+    const response = await groq.chat.completions.create({
+      model: 'llama-3.1-8b-instant', // ✅ fixed model name
+      messages: memory,
+    });
+
+    const reply = response.choices[0].message.content;
+
+    memory.push({ role: 'assistant', content: reply });
+
+    res.json({ reply });
+  } catch (err) {
+    console.error('Error in /chat:', err);
+    res.status(500).json({ error: 'Something went wrong' });
+  }
 });
 
-app.use(express.json());
-app.use('/brainy', express.static('public/brainy'));
+app.post('/api/chat_brainy', async (req, res) => {
+  try {
+    const { message } = req.body;
 
+    memory.push({ role: 'user', content: message });
+
+    const response = await groq.chat.completions.create({
+      model: 'llama-3.1-8b-instant', // ✅ fixed model name
+      messages: memory,
+    });
+
+    const reply = response.choices[0].message.content;
+
+    memory.push({ role: 'assistant', content: reply });
+
+    res.json({ reply });
+  } catch (err) {
+    console.error('Error in /chat:', err);
+    res.status(500).json({ error: 'Something went wrong' });
+  }
+});
 
 app.listen(port, () => {
   console.log(`🤖 AI-chan running at http://localhost:${port}`);
 });
-
-// async function chat(userInput) {
-//   memory.push({ role: 'user', content: userInput });
-
-//   const response = await groq.chat.completions.create({
-//     model: 'llama-3.1-8b-instant',
-//     messages: memory,
-//   });
-
-//   const reply = response.choices[0].message.content;
-
-//   memory.push({ role: 'assistant', content: reply });
-
-//   console.log('\n🤖:', reply, '\n');
-// }
-
-// console.log("AI Agent started. Type 'exit' to quit.\n");
-
-// rl.on('line', async (input) => {
-//   if (input.toLowerCase() === 'exit') {
-//     rl.close();
-//     return;
-//   }
-
-//   await chat(input);
-// });
