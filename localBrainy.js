@@ -1,8 +1,10 @@
+import express from 'express';
 import Groq from 'groq-sdk';
-import fs from 'fs';
-
 import 'dotenv/config';
-
+import fs from 'fs';
+const app = express();
+const port = process.env.PORT || 5000;
+import 'dotenv/config';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -11,22 +13,21 @@ const __dirname = path.dirname(__filename);
 
 const filePath = path.join(__dirname, 'knowledge.md');
 
+const knowledgeRaw = fs.readFileSync(filePath, 'utf8');
 
+const chunks = knowledgeRaw.split('###');
 
 const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
 });
 
-const knowledgeRaw = fs.readFileSync(filePath, 'utf8');
-
-const chunks = knowledgeRaw.split('###');
-// Memory persists per function instance (good enough for personal projects)
+// Conversation memory (per server instance)
 const memory = [
   {
     role: 'system',
     content: `
 You are a helpful conversational AI agent.
-Your name is Brainy-chan.
+Your name is Ai-chan.
 You remember the conversation.
 Be concise and clear.
 Use the following knowledge:
@@ -35,27 +36,33 @@ Use the following knowledge:
   },
 ];
 
-console.log('test', JSON.stringify(memory, null, 2));
-export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method Not Allowed' });
-  }
+// Middleware
+app.use(express.json());
+app.use(express.static('public')); // make sure folder exists
 
+// Chat endpoint
+app.post('/api/chat_brainy', async (req, res) => {
   try {
     const { message } = req.body;
+
     memory.push({ role: 'user', content: message });
 
     const response = await groq.chat.completions.create({
-      model: 'llama-3.1-8b-instant',
+      model: 'llama-3.1-8b-instant', // ✅ fixed model name
       messages: memory,
     });
 
     const reply = response.choices[0].message.content;
+
     memory.push({ role: 'assistant', content: reply });
 
-    res.status(200).json({ reply });
+    res.json({ reply });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'AI-chan failed 😭' });
+    console.error('Error in /chat:', err);
+    res.status(500).json({ error: 'Something went wrong' });
   }
-}
+});
+
+app.listen(port, () => {
+  console.log(`🤖 AI Agent running at http://localhost:${port}`);
+});

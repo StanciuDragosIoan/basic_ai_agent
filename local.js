@@ -1,9 +1,21 @@
 import express from 'express';
 import Groq from 'groq-sdk';
 import 'dotenv/config';
-
+import fs from 'fs';
 const app = express();
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 4000;
+import 'dotenv/config';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const filePath = path.join(__dirname, 'knowledge.md');
+
+const knowledgeRaw = fs.readFileSync(filePath, 'utf8');
+
+const chunks = knowledgeRaw.split('###');
 
 const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
@@ -18,6 +30,8 @@ You are a helpful conversational AI agent.
 Your name is Ai-chan.
 You remember the conversation.
 Be concise and clear.
+Use the following knowledge:
+  ${chunks}
     `,
   },
 ];
