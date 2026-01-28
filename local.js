@@ -63,6 +63,28 @@ app.post('/api/chat', async (req, res) => {
   }
 });
 
+app.post('/api/chat_brainy', async (req, res) => {
+  try {
+    const { message } = req.body;
+
+    memory.push({ role: 'user', content: message });
+
+    const response = await groq.chat.completions.create({
+      model: 'llama-3.1-8b-instant', // ✅ fixed model name
+      messages: memory,
+    });
+
+    const reply = response.choices[0].message.content;
+
+    memory.push({ role: 'assistant', content: reply });
+
+    res.json({ reply });
+  } catch (err) {
+    console.error('Error in /chat:', err);
+    res.status(500).json({ error: 'Something went wrong' });
+  }
+});
+
 app.listen(port, () => {
   console.log(`🤖 AI-chan running at http://localhost:${port}`);
 });
