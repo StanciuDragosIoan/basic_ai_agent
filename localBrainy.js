@@ -38,7 +38,7 @@ Use the following knowledge:
 
 // Middleware
 app.use(express.json());
-app.use(express.static('public')); // make sure folder exists
+app.use('/brainy', express.static('public/brainy'));
 
 // Chat endpoint
 app.post('/api/chat_brainy', async (req, res) => {
@@ -64,5 +64,5 @@ app.post('/api/chat_brainy', async (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`🤖 AI Agent running at http://localhost:${port}`);
+  console.log(`🤖 Brainy-kun running at http://localhost:${port}`);
 });

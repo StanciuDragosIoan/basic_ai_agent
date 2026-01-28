@@ -64,5 +64,5 @@ app.post('/api/chat', async (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`🤖 AI Agent running at http://localhost:${port}`);
+  console.log(`🤖 AI-chan running at http://localhost:${port}`);
 });
