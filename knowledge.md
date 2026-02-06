@@ -158,7 +158,52 @@ pre.conr
 ### How compare 2 branches github no PR
 
 pre.conr
+  //compare main...feature
   https://github.com/OWNER/REPO/compare/branchA...branchB
+pre.conr
+
+### How squash when other commits are mixed in between your commits with a merge in a branch (without breaking the merge)
+
+\nl
+
+Be careful, merge commits cannot be squashed.
+
+pre.conr
+// precondition: you are on your feature branch
+// make sure main is up to date
+git fetch origin main
+
+// start interactive rebase preserving merges
+git rebase -i --rebase-merges main
+
+// Git opens a todo list with your commits and merges.
+// Example todo file structure:
+
+reset 9044074a # base commit
+pick be2d6a13 # feature commit 1
+pick a189e8f7 # feature commit 2
+pick 7866bf86 # feature commit 3
+pick d9e1e1d8 # feature commit 4
+pick 7e6b11cb # feature commit 5
+merge -C 77e9b08d onto # merge main into feature
+
+// edit the todo:
+// - squash only linear commits
+// - keep merge commit as-is
+// - pick or reset other commits
+reset 9044074a # base commit
+pick be2d6a13 # feature commit 1
+squash a189e8f7 # feature commit 2
+squash 7866bf86 # feature commit 3
+squash d9e1e1d8 # feature commit 4
+squash 7e6b11cb # feature commit 5
+merge -C 77e9b08d onto # merge main into feature
+
+// save and close editor
+// Git will prompt to edit the squashed commit message and merge commit message
+// Only lines not starting with # are included in the final commit message
+
+
 pre.conr
 
 ### How wildcard differs from domain in config
@@ -183,3 +228,76 @@ Blue cheese with bacon
 ### What am I thinking of?
 
 Cheese
+
+### Difference in TS between import * as moduleName and import moduleName from './file.json'
+
+When you are doing:
+
+pre.conr
+import * as fakeRegistrations from './file.json';
+pre.conr
+
+You are doing a namespace import
+
+\nl
+_* as X_ means 'give me an object contaiing all the exports of the module _X_
+\nl
+TypeScript treats JSON files as modules with a default export (when _resolveJsonModule_ is enabled).
+\nl
+so _X_ becomes something like:
+pre.conr
+{
+  default: [ { ... }, { ... }, ... ]
+}
+pre.conr
+Some bundlers / Node+TS setups will also add numeric properties (0, 1, 2) — that’s why you saw this crazy shape in your JSON output.
+\nl
+This means that:
+pre.conr
+fakeRegistrations // NOT your array
+fakeRegistrations.default // ✅ your actual array
+pre.conr
+
+\nl
+
+Why _import X from ..._ works:
+\nl
+When you write:
+pre.conr
+import fakeRegistrations from './file.json';
+pre.conr
+
+TypeScript maps the JSON default export directly to the variable
+\nl
+fakeRegistrations is exactly the array, no .default or numeric properties
+\nl
+This relies on TS compiler options:
+\nl
+_"resolveJsonModule": true_ → allows importing JSON files as modules
+\nl
+_"esModuleInterop": true_ → enables import X from 'module' syntax for CommonJS-style modules
+\nl
+_*_ as = namespace object, import X from = default export.
+TypeScript + JSON + Node interop makes this extra confusing.
+
+\nl
+4️⃣ References / docs
+You can read more about this behavior here:
+\nl
+TypeScript resolveJsonModule:
+\nl
+[https://www.typescriptlang.org/tsconfig#resolveJsonModule](https://www.typescriptlang.org/tsconfig#resolveJsonModule)
+
+\nl
+esModuleInterop explanation
+\nl
+[https://www.typescriptlang.org/tsconfig#esModuleInterop](https://www.typescriptlang.org/tsconfig#esModuleInterop)
+\nl
+Official TS handbook on modules
+\nl
+[https://www.typescriptlang.org/docs/handbook/modules.html#export--and-import--require](https://www.typescriptlang.org/docs/handbook/modules.html#export--and-import--require)
+\nl
+StackOverflow discussion about import * as json vs import json
+\nl
+[https://stackoverflow.com/questions/52524687/typescript-importing-json-modules](https://stackoverflow.com/questions/52524687/typescript-importing-json-modules)
+\nl
