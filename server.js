@@ -51,7 +51,7 @@ ${chunks}
 app.post('/api/chat', async (req, res) => {
   try {
     const { message } = req.body;
-    memory.push({ role: 'user', content: message });
+    memoryBase.push({ role: 'user', content: message });
 
     const response = await groq.chat.completions.create({
       model: 'llama-3.1-8b-instant',
@@ -59,7 +59,7 @@ app.post('/api/chat', async (req, res) => {
     });
 
     const reply = response.choices[0].message.content;
-    memory.push({ role: 'assistant', content: reply });
+    memoryBase.push({ role: 'assistant', content: reply });
 
     res.json({ reply });
   } catch (err) {
