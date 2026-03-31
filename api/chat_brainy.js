@@ -1,21 +1,21 @@
-import Groq from 'groq-sdk';
-import fs from 'fs';
-import 'dotenv/config';
-import path from 'path';
+import Groq from "groq-sdk";
+import fs from "fs";
+import "dotenv/config";
+import path from "path";
 
-const filePath = path.join(process.cwd(), 'knowledge.md');
+const filePath = path.join(process.cwd(), "knowledge.md");
 
 const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
 });
 
-const knowledgeRaw = fs.readFileSync(filePath, 'utf8');
+const knowledgeRaw = fs.readFileSync(filePath, "utf8");
 
-const chunks = knowledgeRaw.split('###');
+const chunks = knowledgeRaw.split("###");
 // Memory persists per function instance (good enough for personal projects)
 const memory = [
   {
-    role: 'system',
+    role: "system",
     content: `
 You are a helpful conversational AI agent.
 Your name is Brainy-chan.
@@ -27,28 +27,28 @@ Use the following knowledge:
   },
 ];
 
-console.log('test', JSON.stringify(memory, null, 2));
+console.log("test", JSON.stringify(memory, null, 2));
 export default async function handler(req, res) {
-  console.log('PATH', filePath);
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method Not Allowed' });
+  console.log("PATH", filePath);
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method Not Allowed" });
   }
 
   try {
     const { message } = req.body;
-    memory.push({ role: 'user', content: message });
+    memory.push({ role: "user", content: message });
 
     const response = await groq.chat.completions.create({
-      model: 'llama-3.1-8b-instant',
+      model: "llama-3.1-8b-instant",
       messages: memory,
     });
 
     const reply = response.choices[0].message.content;
-    memory.push({ role: 'assistant', content: reply });
+    memory.push({ role: "assistant", content: reply });
 
     res.status(200).json({ reply });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'AI-chan failed 😭' });
+    res.status(500).json({ error: "AI-chan failed 😭" });
   }
 }

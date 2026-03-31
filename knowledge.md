@@ -89,7 +89,6 @@ pre.conr
 runs-on: ubuntu-latest
 pre.conr
 
-
 ##### Other Elements
 
 Includes permissions, concurrency controls, environment variables, secrets for secure data, and matrix strategies for running variations (e.g., testing across multiple OS versions).
@@ -105,7 +104,6 @@ strategy: matrix: os: [ubuntu-latest, windows-latest]
 pre.conr
 
 See more [here](https://docs.github.com/en/actions/concepts/workflows-and-actions/workflows)
-
 
 #### What Do Workflow Runs Mean?
 
@@ -132,7 +130,7 @@ Runs provide detailed insights into what worked or failed. For example, if a tes
 run
 
 pre.conr
-sudo launchctl unload /Library/LaunchDaemons/com.zscaler.*
+sudo launchctl unload /Library/LaunchDaemons/com.zscaler.\*
 pre.conr
 
 This unloads the service.
@@ -148,7 +146,7 @@ pre.conr
 docker run -d --name depo-postgres -p 5432:5432 -e POSTGRES_DB=depo -e POSTGRES_USER=depo -e POSTGRES_PASSWORD=yourpassword postgres
 pre.conr
 
-### How  fetch and checkout a single branch
+### How fetch and checkout a single branch
 
 pre.conr
 git fetch origin branchName
@@ -158,8 +156,8 @@ pre.conr
 ### How compare 2 branches github no PR
 
 pre.conr
-  //compare main...feature
-  https://github.com/OWNER/REPO/compare/branchA...branchB
+//compare main...feature
+https://github.com/OWNER/REPO/compare/branchA...branchB
 pre.conr
 
 ### How squash when other commits are mixed in between your commits with a merge in a branch (without breaking the merge)
@@ -203,12 +201,11 @@ merge -C 77e9b08d onto # merge main into feature
 // Git will prompt to edit the squashed commit message and merge commit message
 // Only lines not starting with # are included in the final commit message
 
-
 pre.conr
 
 ### How wildcard differs from domain in config
 
-The difference between putting _azure.myDomain.com_ and _'*.azure.myDomain.com'_ in config file is the following:
+The difference between putting _azure.myDomain.com_ and _'\*.azure.myDomain.com'_ in config file is the following:
 
 \nl
 
@@ -216,38 +213,36 @@ The first one _azure.myDomain.com_ is an exact match so it will only allow reque
 
 \nl
 
-The second one _'*.azure.myDomain.com'_ is a suffix match (a wildcard match) meaning it will allow requests to both _https://azure.myDomain.com_ and any subdomains
+The second one _'\*.azure.myDomain.com'_ is a suffix match (a wildcard match) meaning it will allow requests to both _https://azure.myDomain.com_ and any subdomains
 like _https://test.azure.myDomain.com_, _https://dev.azure.myDomain.com_ and so on...
-
 
 ### What did Joe eat last year?
 
 Blue cheese with bacon
 
-
 ### What am I thinking of?
 
 Cheese
 
-### Difference in TS between import * as moduleName and import moduleName from './file.json'
+### Difference in TS between import \* as moduleName and import moduleName from './file.json'
 
 When you are doing:
 
 pre.conr
-import * as fakeRegistrations from './file.json';
+import \* as fakeRegistrations from './file.json';
 pre.conr
 
 You are doing a namespace import
 
 \nl
-_* as X_ means 'give me an object contaiing all the exports of the module _X_
+_\* as X_ means 'give me an object contaiing all the exports of the module _X_
 \nl
 TypeScript treats JSON files as modules with a default export (when _resolveJsonModule_ is enabled).
 \nl
 so _X_ becomes something like:
 pre.conr
 {
-  default: [ { ... }, { ... }, ... ]
+default: [ { ... }, { ... }, ... ]
 }
 pre.conr
 Some bundlers / Node+TS setups will also add numeric properties (0, 1, 2) — that’s why you saw this crazy shape in your JSON output.
@@ -277,7 +272,7 @@ _"resolveJsonModule": true_ → allows importing JSON files as modules
 \nl
 _"esModuleInterop": true_ → enables import X from 'module' syntax for CommonJS-style modules
 \nl
-_*_ as = namespace object, import X from = default export.
+_\*_ as = namespace object, import X from = default export.
 TypeScript + JSON + Node interop makes this extra confusing.
 
 \nl
@@ -297,7 +292,21 @@ Official TS handbook on modules
 \nl
 [https://www.typescriptlang.org/docs/handbook/modules.html#export--and-import--require](https://www.typescriptlang.org/docs/handbook/modules.html#export--and-import--require)
 \nl
-StackOverflow discussion about import * as json vs import json
+StackOverflow discussion about import \* as json vs import json
 \nl
 [https://stackoverflow.com/questions/52524687/typescript-importing-json-modules](https://stackoverflow.com/questions/52524687/typescript-importing-json-modules)
 \nl
+
+
+### How to make sure claude's commits show as yours in github
+
+go to _~/.claude_` and in _settings.json_ paste
+
+pre.conr
+{
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  }
+}
+pre.conr

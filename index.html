@@ -1,67 +1,103 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
-<head>
+  <head>
     <meta charset="UTF-8" />
-    <title>AI-chan 🌶️</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI-chan</title>
     <link rel="stylesheet" href="./style.css" />
-    <link rel="stylesheet" href="public/style.css" />
-</head>
+  </head>
 
-<body>
+  <body>
     <div class="app">
-        <header class="header">
-            <div class="avatar">
-                <img src="https://media.craiyon.com/2025-10-03/kJ0_1yo3TAy64Xcc6-8JCw.webp" alt="AI-chan chibi" />
-            </div>
-            <div>
-                <h1>AI-chan</h1>
-                <p>Your spicy anime assistant</p>
-            </div>
-        </header>
+      <header class="header">
+        <div class="avatar">
+          <iframe
+            title="Light - Anime Girl Character"
+            frameborder="0"
+            allowfullscreen="true"
+            mozallowfullscreen="true"
+            webkitallowfullscreen="true"
+            allow="autoplay; fullscreen; xr-spatial-tracking"
+            src="https://sketchfab.com/models/1e41cf5f9ef744739bc8095176e6d2ea/embed?autostart=1&ui_controls=0&ui_infos=0&ui_watermark=0"
+          >
+          </iframe>
+        </div>
+        <div>
+          <h1>AI-chan</h1>
+          <p>Your cute anime assistant</p>
+        </div>
+      </header>
 
-        <div id="messages" class="messages"></div>
-        <div id="scroll-anchor"></div>
+      <div id="messages" class="messages">
+        <div class="bubble bot">
+          Hey! I'm AI-chan~ Ask me anything! &#x1F336;&#xFE0F;
+        </div>
+      </div>
 
-        <form id="chat-form" class="input-bar">
-            <input id="input" placeholder="Talk to AI-chan..." autocomplete="off" />
-            <button type="submit">Send</button>
-        </form>
+      <div id="typing" class="typing-indicator">
+        <span></span><span></span><span></span>
+      </div>
+
+      <form id="chat-form" class="input-bar">
+        <input id="input" placeholder="Talk to AI-chan..." autocomplete="off" />
+        <button type="submit" id="send-btn" title="Send">&#x279C;</button>
+      </form>
     </div>
-<script>
-    const form = document.getElementById('chat-form');
-    const input = document.getElementById('input');
-    const messages = document.getElementById('messages');
 
+    <script>
+      const form = document.getElementById("chat-form");
+      const input = document.getElementById("input");
+      const messages = document.getElementById("messages");
+      const typing = document.getElementById("typing");
+      const sendBtn = document.getElementById("send-btn");
 
+      function addMessage(role, text) {
+        const bubble = document.createElement("div");
+        bubble.className = `bubble ${role}`;
+        bubble.textContent = text;
+        messages.appendChild(bubble);
+        messages.scrollTop = messages.scrollHeight;
+      }
 
-        function addMessage(role, text) {
-            const bubble = document.createElement('div');
-            bubble.className = `bubble ${role}`;
-            bubble.textContent = text;
-            messages.appendChild(bubble);
-            messages.scrollTop = messages.scrollHeight;
+      function setLoading(on) {
+        sendBtn.disabled = on;
+        input.disabled = on;
+        if (on) {
+          typing.classList.add("visible");
+          messages.appendChild(typing);
+          messages.scrollTop = messages.scrollHeight;
+        } else {
+          typing.classList.remove("visible");
         }
+      }
 
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const text = input.value.trim();
-            if (!text) return;
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const text = input.value.trim();
+        if (!text) return;
 
-        addMessage('user', text);
-        input.value = '';
+        addMessage("user", text);
+        input.value = "";
+        setLoading(true);
 
-        const res = await fetch('/api/chat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+        try {
+          const res = await fetch("/api/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ message: text }),
-        });
+          });
 
-        const data = await res.json();
-        addMessage('bot', data.reply);
+          if (!res.ok) throw new Error("Server error");
 
-    });
-        </script>
-</body>
-
+          const data = await res.json();
+          addMessage("bot", data.reply);
+        } catch (err) {
+          addMessage("error", "Oops, something went wrong. Try again!");
+        } finally {
+          setLoading(false);
+          input.focus();
+        }
+      });
+    </script>
+  </body>
 </html>

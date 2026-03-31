@@ -1,23 +1,23 @@
 function markdownToHTML(markdown) {
   // Convert headings
-  markdown = markdown.replace(/^##### (.*$)/gim, '<h5>$1</h5>');
-  markdown = markdown.replace(/^#### (.*$)/gim, '<h4>$1</h4>');
-  markdown = markdown.replace(/^### (.*$)/gim, '<h3>$1</h3>');
-  markdown = markdown.replace(/^## (.*$)/gim, '<h2>$1</h2>');
-  markdown = markdown.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+  markdown = markdown.replace(/^##### (.*$)/gim, "<h5>$1</h5>");
+  markdown = markdown.replace(/^#### (.*$)/gim, "<h4>$1</h4>");
+  markdown = markdown.replace(/^### (.*$)/gim, "<h3>$1</h3>");
+  markdown = markdown.replace(/^## (.*$)/gim, "<h2>$1</h2>");
+  markdown = markdown.replace(/^# (.*$)/gim, "<h1>$1</h1>");
 
   // Convert bold
-  markdown = markdown.replace(/\*\*(.*)\*\*/gim, '<b>$1</b>');
-  markdown = markdown.replace(/\*\*(.*)\*\*/gim, '<b>$1</b>');
+  markdown = markdown.replace(/\*\*(.*)\*\*/gim, "<b>$1</b>");
+  markdown = markdown.replace(/\*\*(.*)\*\*/gim, "<b>$1</b>");
 
   // Convert italic
-  markdown = markdown.replace(/\*(.*)\*/gim, '<i>$1</i>');
+  markdown = markdown.replace(/\*(.*)\*/gim, "<i>$1</i>");
 
   // Convert italic with underscores
   markdown = markdown.replace(/_(.*?)_/gim, '<i class="snippet">$1</i>');
 
   // Convert line breaks only if we type \nl
-  markdown = markdown.replace(/\\nl/g, '<br><br>');
+  markdown = markdown.replace(/\\nl/g, "<br><br>");
 
   // Convert pre.code syntax to <pre class="code">...</pre> for code we want to run
   markdown = markdown.replace(
@@ -80,11 +80,11 @@ function markdownToHTML(markdown) {
 }
 
 async function copyCode(code) {
-  const codeClean = code.split('RUN')[0].trim();
+  const codeClean = code.split("RUN")[0].trim();
   try {
     await navigator.clipboard.writeText(codeClean);
   } catch (err) {
-    console.error('Failed to copy code: ', err);
+    console.error("Failed to copy code: ", err);
   }
 }
 
@@ -95,19 +95,19 @@ async function runCode(code, parent) {
 
   console.log = (...args) => {
     const logArgs = args.map((arg) =>
-      typeof arg === 'object' && arg !== null
+      typeof arg === "object" && arg !== null
         ? JSON.stringify(arg, null, 2)
         : arg,
     );
-    outputLogs.push(logArgs.join(' '));
+    outputLogs.push(logArgs.join(" "));
     originalConsoleLog(...logArgs);
   };
 
   try {
-    let codeToRun = code.split('RUN')[0].trim();
+    let codeToRun = code.split("RUN")[0].trim();
 
     eval(codeToRun);
-    displayOutput(outputLogs.join('\n'), parent);
+    displayOutput(outputLogs.join("\n"), parent);
   } catch (error) {
     displayOutput(`Error: ${error.message}`, parent);
   } finally {
@@ -116,14 +116,14 @@ async function runCode(code, parent) {
 }
 
 function displayOutput(output, parent) {
-  let outputArea = parent.querySelector('.output-area');
+  let outputArea = parent.querySelector(".output-area");
   if (!outputArea) {
-    outputArea = document.createElement('div');
-    outputArea.className = 'output-area';
+    outputArea = document.createElement("div");
+    outputArea.className = "output-area";
     parent.appendChild(outputArea);
   }
 
-  const outputElement = document.createElement('pre');
+  const outputElement = document.createElement("pre");
   outputElement.textContent = output;
   outputArea.appendChild(outputElement);
 }
@@ -131,18 +131,18 @@ function displayOutput(output, parent) {
 //sticky btn
 function createStickyScrollButton() {
   // Create button element
-  const button = document.createElement('button');
-  button.textContent = 'Scroll to Bottom';
-  button.className = 'sticky-scroll-button';
+  const button = document.createElement("button");
+  button.textContent = "Scroll to Bottom";
+  button.className = "sticky-scroll-button";
 
   // Append button to the body
   document.body.appendChild(button);
 
   // Add click event listener to scroll to bottom
-  button.addEventListener('click', () => {
+  button.addEventListener("click", () => {
     window.scrollTo({
       top: document.body.scrollHeight,
-      behavior: 'smooth',
+      behavior: "smooth",
     });
   });
 }
