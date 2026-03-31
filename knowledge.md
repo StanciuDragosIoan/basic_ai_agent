@@ -130,10 +130,18 @@ Runs provide detailed insights into what worked or failed. For example, if a tes
 run
 
 pre.conr
-sudo launchctl unload /Library/LaunchDaemons/com.zscaler.\*
+for plist in /Library/LaunchDaemons/com.zscaler.*; do
+  sudo launchctl bootout system "$plist"
+done
 pre.conr
 
 This unloads the service.
+
+After that you can check with this that it s not present anymore
+
+pre.conr
+sudo launchctl list | grep -i zscaler
+pre.conr
 
 \nl
 

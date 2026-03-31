@@ -1,0 +1,1378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎉 Math Quiz Adventure!</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6c5ce7;
+            --secondary: #fd79a8;
+            --accent: #fdcb6e;
+            --success: #00b894;
+            --danger: #e17055;
+            --bg: #0f0e17;
+            --card-bg: #1e1e2e;
+            --text: #fffffe;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(135deg, #0f0e17 0%, #1a1a2e 50%, #16213e 100%);
+            min-height: 100vh;
+            color: var(--text);
+            overflow-x: hidden;
+        }
+
+        /* ======================== */
+        /* SCREEN MANAGEMENT       */
+        /* ======================== */
+        .screen { display: none; min-height: 100vh; padding: 16px 16px 40px; }
+        .screen.active { display: flex; flex-direction: column; align-items: center; }
+        .screen > * { position: relative; z-index: 1; }
+
+        /* ======================== */
+        /* HEADER                  */
+        /* ======================== */
+        .header {
+            text-align: center;
+            padding: 16px 0 24px;
+            width: 100%;
+        }
+
+        .header h1 {
+            font-family: 'Fredoka One', cursive;
+            font-size: clamp(1.8rem, 6vw, 3.2rem);
+            background: linear-gradient(90deg, #fd79a8, #fdcb6e, #6c5ce7, #00b894, #fd79a8);
+            background-size: 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shimmer 4s ease infinite;
+        }
+
+        .header p {
+            opacity: 0.55;
+            font-size: 0.9rem;
+            margin-top: 6px;
+        }
+
+        @keyframes shimmer {
+            0%,100% { background-position: 0% 50%; }
+            50%      { background-position: 100% 50%; }
+        }
+
+        /* ======================== */
+        /* SETUP SCREEN            */
+        /* ======================== */
+        .setup-grid {
+            display: grid;
+            gap: 22px;
+            width: 100%;
+            max-width: 580px;
+        }
+
+        .section-title {
+            font-size: 0.75rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 2.5px;
+            color: #7070a0;
+            margin-bottom: 10px;
+        }
+
+        /* Operation buttons */
+        .op-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .op-btn {
+            background: var(--card-bg);
+            border: 3px solid transparent;
+            border-radius: 16px;
+            padding: 14px 10px;
+            cursor: pointer;
+            transition: transform 0.15s, border-color 0.2s, background 0.2s;
+            color: var(--text);
+            font-family: 'Nunito', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .op-btn .icon { font-size: 1.8rem; }
+        .op-btn:hover  { transform: translateY(-2px); }
+
+        .op-btn.selected[data-op="addition"]       { border-color: #fd79a8; background: rgba(253,121,168,.15); }
+        .op-btn.selected[data-op="subtraction"]    { border-color: #fdcb6e; background: rgba(253,203,110,.15); }
+        .op-btn.selected[data-op="multiplication"] { border-color: #6c5ce7; background: rgba(108,92,231,.15); }
+        .op-btn.selected[data-op="division"]       { border-color: #00b894; background: rgba(0,184,148,.15); }
+
+        /* Mode buttons */
+        .mode-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .mode-btn {
+            background: var(--card-bg);
+            border: 3px solid transparent;
+            border-radius: 16px;
+            padding: 14px 8px;
+            cursor: pointer;
+            transition: transform 0.15s, border-color 0.2s, background 0.2s;
+            color: var(--text);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 700;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .mode-btn .icon { font-size: 1.8rem; }
+        .mode-btn:hover { transform: translateY(-2px); }
+        .mode-btn.selected { border-color: var(--accent); background: rgba(253,203,110,.15); }
+
+        /* Sliders */
+        .slider-box {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 18px 20px;
+        }
+
+        .slider-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .slider-label { font-weight: 700; font-size: 0.95rem; }
+
+        .slider-val {
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.6rem;
+            color: var(--accent);
+            min-width: 40px;
+            text-align: right;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            -webkit-appearance: none;
+            height: 8px;
+            border-radius: 4px;
+            background: #2d2d4e;
+            outline: none;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(253,203,110,.5);
+        }
+
+        /* Start button */
+        .start-btn {
+            background: linear-gradient(135deg, #6c5ce7, #fd79a8);
+            border: none;
+            border-radius: 50px;
+            padding: 16px 44px;
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.4rem;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 8px 30px rgba(108,92,231,.4);
+            width: 100%;
+            max-width: 280px;
+        }
+
+        .start-btn:hover  { transform: translateY(-3px); box-shadow: 0 12px 40px rgba(108,92,231,.6); }
+        .start-btn:active { transform: translateY(0); }
+
+        /* ======================== */
+        /* GAME HEADER (all modes) */
+        /* ======================== */
+        .game-header {
+            width: 100%;
+            max-width: 580px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 6px 0 14px;
+        }
+
+        .score-badge {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 6px 14px;
+            font-weight: 800;
+            white-space: nowrap;
+            font-size: 0.9rem;
+        }
+
+        .score-badge .num {
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.4rem;
+            color: var(--accent);
+        }
+
+        .prog-wrap {
+            flex: 1;
+            background: #2d2d4e;
+            border-radius: 50px;
+            height: 10px;
+            overflow: hidden;
+        }
+
+        .prog-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #6c5ce7, #fd79a8);
+            border-radius: 50px;
+            transition: width 0.4s ease;
+            width: 0%;
+        }
+
+        .q-counter {
+            font-weight: 800;
+            opacity: 0.6;
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
+
+        /* ======================== */
+        /* BACK BUTTON             */
+        /* ======================== */
+        .back-btn {
+            background: transparent;
+            border: 2px solid #4d4d7e;
+            border-radius: 50px;
+            padding: 7px 18px;
+            color: #8888aa;
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: border-color 0.2s, color 0.2s;
+            align-self: flex-start;
+            margin-bottom: 4px;
+        }
+
+        .back-btn:hover { border-color: #8888aa; color: white; }
+
+        /* ======================== */
+        /* WHEEL SCREEN            */
+        /* ======================== */
+        .wheel-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 18px;
+            width: 100%;
+            max-width: 420px;
+        }
+
+        .wheel-stage {
+            position: relative;
+            width: min(300px, 86vw);
+            height: min(300px, 86vw);
+        }
+
+        #wheelCanvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            box-shadow: 0 0 40px rgba(108,92,231,.4), 0 0 70px rgba(253,121,168,.15);
+        }
+
+        .wheel-ptr {
+            position: absolute;
+            top: -18px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 2rem;
+            filter: drop-shadow(0 3px 5px rgba(0,0,0,.6));
+            z-index: 10;
+        }
+
+        .spin-btn {
+            background: linear-gradient(135deg, #fd79a8, #fdcb6e);
+            border: none;
+            border-radius: 50px;
+            padding: 13px 34px;
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.2rem;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.15s;
+            box-shadow: 0 6px 20px rgba(253,121,168,.35);
+        }
+
+        .spin-btn:not(:disabled):hover { transform: translateY(-2px); }
+        .spin-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+        .wheel-q-box {
+            background: var(--card-bg);
+            border: 3px solid #2d2d4e;
+            border-radius: 20px;
+            padding: 22px 20px;
+            text-align: center;
+            width: 100%;
+            animation: slideUp 0.3s ease;
+        }
+
+        .q-label {
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 2.5px;
+            opacity: 0.5;
+            margin-bottom: 10px;
+        }
+
+        .big-q {
+            font-family: 'Fredoka One', cursive;
+            font-size: clamp(1.8rem, 6vw, 2.8rem);
+            margin-bottom: 16px;
+            line-height: 1.2;
+        }
+
+        /* ======================== */
+        /* ANSWER INPUT            */
+        /* ======================== */
+        .ans-row {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .ans-input {
+            background: #2d2d4e;
+            border: 3px solid #4d4d7e;
+            border-radius: 14px;
+            padding: 12px 16px;
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.6rem;
+            color: var(--text);
+            text-align: center;
+            outline: none;
+            transition: border-color 0.2s;
+            width: 130px;
+        }
+
+        .ans-input:focus { border-color: var(--primary); }
+
+        .ok-btn {
+            background: var(--primary);
+            border: none;
+            border-radius: 14px;
+            padding: 12px 22px;
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.2rem;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.15s, background 0.15s;
+        }
+
+        .ok-btn:hover { background: #7d6ff0; transform: translateY(-1px); }
+
+        /* ======================== */
+        /* CARDS SCREEN            */
+        /* ======================== */
+        .cards-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            width: 100%;
+            max-width: 480px;
+        }
+
+        .card-scene {
+            perspective: 1100px;
+            width: min(340px, 90vw);
+            height: min(210px, 56vw);
+            cursor: pointer;
+        }
+
+        .card-3d {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.55s cubic-bezier(.4,0,.2,1);
+        }
+
+        .card-3d.flipped { transform: rotateY(180deg); }
+
+        .card-face {
+            position: absolute;
+            inset: 0;
+            border-radius: 24px;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .card-front {
+            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+            box-shadow: 0 12px 40px rgba(108,92,231,.4);
+        }
+
+        .card-back {
+            background: linear-gradient(135deg, #00b894, #55efc4);
+            transform: rotateY(180deg);
+            box-shadow: 0 12px 40px rgba(0,184,148,.4);
+            transition: background 0.1s;
+        }
+
+        .card-back.wrong {
+            background: linear-gradient(135deg, #e17055, #fab1a0) !important;
+        }
+
+        .card-micro {
+            font-size: 0.75rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            opacity: 0.7;
+            color: white;
+        }
+
+        .card-q-text {
+            font-family: 'Fredoka One', cursive;
+            font-size: clamp(1.8rem, 6.5vw, 3rem);
+            color: white;
+            text-align: center;
+            padding: 0 12px;
+        }
+
+        .card-ans-text {
+            font-family: 'Fredoka One', cursive;
+            font-size: clamp(2.2rem, 8vw, 3.5rem);
+            color: white;
+        }
+
+        .next-card-btn {
+            background: linear-gradient(135deg, #00b894, #55efc4);
+            border: none;
+            border-radius: 50px;
+            padding: 13px 32px;
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.15rem;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.15s;
+            box-shadow: 0 6px 20px rgba(0,184,148,.3);
+        }
+
+        .next-card-btn:hover { transform: translateY(-2px); }
+
+        /* ======================== */
+        /* QUIZ SCREEN             */
+        /* ======================== */
+        .quiz-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            width: 100%;
+            max-width: 520px;
+        }
+
+        .q-card {
+            background: var(--card-bg);
+            border: 3px solid #2d2d4e;
+            border-radius: 22px;
+            padding: 26px 20px;
+            text-align: center;
+            width: 100%;
+            animation: slideUp 0.3s ease;
+        }
+
+        .choices-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            width: 100%;
+        }
+
+        .choice-btn {
+            background: var(--card-bg);
+            border: 3px solid #2d2d4e;
+            border-radius: 16px;
+            padding: 18px 10px;
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.9rem;
+            color: var(--text);
+            cursor: pointer;
+            transition: border-color 0.15s, background 0.15s, transform 0.15s;
+        }
+
+        .choice-btn:hover:not(:disabled) {
+            border-color: var(--primary);
+            background: rgba(108,92,231,.15);
+            transform: translateY(-2px);
+        }
+
+        .choice-btn.correct {
+            border-color: var(--success);
+            background: rgba(0,184,148,.2);
+            animation: pulse 0.35s ease;
+        }
+
+        .choice-btn.wrong {
+            border-color: var(--danger);
+            background: rgba(225,112,85,.2);
+            animation: shake 0.4s ease;
+        }
+
+        @keyframes pulse {
+            0%   { transform: scale(1); }
+            50%  { transform: scale(1.06); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes shake {
+            0%,100% { transform: translateX(0); }
+            25%     { transform: translateX(-8px); }
+            75%     { transform: translateX(8px); }
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(18px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ======================== */
+        /* FEEDBACK OVERLAY        */
+        /* ======================== */
+        .fb-overlay {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.15s;
+        }
+
+        .fb-overlay.show { opacity: 1; }
+
+        .fb-emoji {
+            font-size: 5.5rem;
+            animation: pop 0.4s ease forwards;
+            filter: drop-shadow(0 4px 12px rgba(0,0,0,.5));
+        }
+
+        @keyframes pop {
+            0%   { transform: scale(0) rotate(-20deg); }
+            65%  { transform: scale(1.35) rotate(8deg); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+
+        /* ======================== */
+        /* RESULTS SCREEN          */
+        /* ======================== */
+        .results-card {
+            background: var(--card-bg);
+            border: 3px solid #2d2d4e;
+            border-radius: 28px;
+            padding: 36px 28px;
+            text-align: center;
+            max-width: 480px;
+            width: 100%;
+            animation: slideUp 0.4s ease;
+        }
+
+        .res-emoji { font-size: 4.5rem; margin-bottom: 14px; }
+
+        .res-title {
+            font-family: 'Fredoka One', cursive;
+            font-size: clamp(1.8rem, 6vw, 2.8rem);
+            margin-bottom: 6px;
+        }
+
+        .res-score {
+            font-family: 'Fredoka One', cursive;
+            font-size: clamp(3rem, 10vw, 4.5rem);
+            color: var(--accent);
+            margin: 14px 0;
+            line-height: 1;
+        }
+
+        .res-msg {
+            font-size: 1rem;
+            font-weight: 600;
+            opacity: 0.75;
+            margin-bottom: 26px;
+            line-height: 1.5;
+        }
+
+        .res-btns {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn-retry {
+            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+            border: none;
+            border-radius: 50px;
+            padding: 13px 30px;
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.1rem;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.15s;
+            box-shadow: 0 6px 20px rgba(108,92,231,.3);
+        }
+
+        .btn-home {
+            background: var(--card-bg);
+            border: 3px solid #4d4d7e;
+            border-radius: 50px;
+            padding: 13px 30px;
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.1rem;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.15s;
+        }
+
+        .btn-retry:hover, .btn-home:hover { transform: translateY(-2px); }
+
+        /* ======================== */
+        /* STARS BG                */
+        /* ======================== */
+        .stars-bg {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        .star {
+            position: absolute;
+            border-radius: 50%;
+            background: white;
+            opacity: 0;
+            animation: twinkle var(--d) ease-in-out infinite var(--dl);
+        }
+
+        @keyframes twinkle {
+            0%,100% { opacity: 0;          transform: scale(0.5); }
+            50%      { opacity: var(--op); transform: scale(1); }
+        }
+
+        /* ======================== */
+        /* CONFETTI                */
+        /* ======================== */
+        .confetti-stage {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 200;
+            overflow: hidden;
+        }
+
+        .conf {
+            position: absolute;
+            top: -16px;
+            animation: fall var(--dur) var(--dl) ease-in forwards;
+        }
+
+        @keyframes fall {
+            0%   { transform: translateY(0) rotate(0deg) translateX(0); opacity: 1; }
+            100% { transform: translateY(110vh) rotate(700deg) translateX(var(--dx)); opacity: 0; }
+        }
+
+        /* ======================== */
+        /* RESPONSIVE              */
+        /* ======================== */
+        @media (max-width: 400px) {
+            .op-buttons   { grid-template-columns: 1fr 1fr; }
+            .mode-buttons { grid-template-columns: repeat(3, 1fr); }
+            .choices-grid { grid-template-columns: 1fr 1fr; }
+            .choice-btn   { font-size: 1.5rem; padding: 14px 6px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="stars-bg" id="starsBg"></div>
+<div class="fb-overlay"    id="fbOverlay"><div class="fb-emoji" id="fbEmoji"></div></div>
+<div class="confetti-stage" id="confettiStage"></div>
+
+<!-- ======================== -->
+<!-- SETUP SCREEN             -->
+<!-- ======================== -->
+<div class="screen active" id="setupScreen">
+    <div class="header">
+        <h1>🎉 Aventura matematică!</h1>
+        <p>Alege-ți setările și începe să joci!!</p>
+    </div>
+
+    <div class="setup-grid">
+
+        <div>
+            <div class="section-title">① Alege Operația</div>
+            <div class="op-buttons">
+                <button class="op-btn selected" data-op="addition" onclick="selectOp(this)">
+                    <span class="icon">➕</span>Adunare
+                </button>
+                <button class="op-btn" data-op="subtraction" onclick="selectOp(this)">
+                    <span class="icon">➖</span>Scădere
+                </button>
+                <button class="op-btn" data-op="multiplication" onclick="selectOp(this)">
+                    <span class="icon">✖️</span>Înmulțire
+                </button>
+                <button class="op-btn" data-op="division" onclick="selectOp(this)">
+                    <span class="icon">➗</span>Împărțire
+                </button>
+            </div>
+        </div>
+
+        <div>
+            <div class="section-title">② Număr ales (1 – 12)</div>
+            <div class="slider-box">
+                <div class="slider-row">
+                    <span class="slider-label">Tabla lui:</span>
+                    <span class="slider-val" id="tableDisp">3</span>
+                </div>
+                <input type="range" id="tableSlider" min="1" max="12" value="3"
+                       oninput="document.getElementById('tableDisp').textContent=this.value; state.tableNumber=+this.value">
+            </div>
+        </div>
+
+        <div>
+            <div class="section-title">③ Număr de întrebări</div>
+            <div class="slider-box">
+                <div class="slider-row">
+                    <span class="slider-label">Întrebări:</span>
+                    <span class="slider-val" id="qCountDisp">10</span>
+                </div>
+                <input type="range" id="qCountSlider" min="5" max="20" value="10"
+                       oninput="document.getElementById('qCountDisp').textContent=this.value; state.totalQ=+this.value">
+            </div>
+        </div>
+
+        <div>
+            <div class="section-title">④ Alege tipul de joc</div>
+            <div class="mode-buttons">
+                <button class="mode-btn selected" data-mode="wheel" onclick="selectMode(this)">
+                    <span class="icon">🎡</span>Roata
+                </button>
+                <button class="mode-btn" data-mode="cards" onclick="selectMode(this)">
+                    <span class="icon">🃏</span>Carduri
+                </button>
+                <button class="mode-btn" data-mode="quiz" onclick="selectMode(this)">
+                    <span class="icon">🧠</span>Quiz
+                </button>
+            </div>
+        </div>
+
+        <div style="display:flex;justify-content:center">
+            <button class="start-btn" onclick="startGame()">🚀 Start!</button>
+        </div>
+
+    </div>
+</div>
+
+<!-- ======================== -->
+<!-- WHEEL SCREEN             -->
+<!-- ======================== -->
+<div class="screen" id="wheelScreen">
+    <button class="back-btn" onclick="goHome()">← Back</button>
+
+    <div class="game-header">
+        <div class="score-badge">⭐ <span class="num" id="wScore">0</span></div>
+        <div class="prog-wrap"><div class="prog-bar" id="wProg"></div></div>
+        <div class="q-counter" id="wQNum">1/10</div>
+    </div>
+
+    <div class="wheel-wrap">
+        <div class="wheel-stage">
+            <div class="wheel-ptr">▼</div>
+            <canvas id="wheelCanvas" width="400" height="400"></canvas>
+        </div>
+
+        <button class="spin-btn" id="spinBtn" onclick="spinWheel()">🎡 Învarte!</button>
+
+        <div class="wheel-q-box" id="wQBox" style="display:none">
+            <div class="q-label">What is…</div>
+            <div class="big-q" id="wQText">?</div>
+            <div class="ans-row">
+                <input class="ans-input" id="wAns" type="number" placeholder="?"
+                       onkeydown="if(event.key==='Enter') checkWheelAns()">
+                <button class="ok-btn" onclick="checkWheelAns()">✓</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ======================== -->
+<!-- CARDS SCREEN             -->
+<!-- ======================== -->
+<div class="screen" id="cardsScreen">
+    <button class="back-btn" onclick="goHome()">← Back</button>
+
+    <div class="game-header">
+        <div class="score-badge">⭐ <span class="num" id="cScore">0</span></div>
+        <div class="prog-wrap"><div class="prog-bar" id="cProg"></div></div>
+        <div class="q-counter" id="cQNum">1/10</div>
+    </div>
+
+    <div class="cards-wrap">
+        <p style="opacity:.5;font-size:.85rem;text-align:center">Tastează răspunsul, apoi atinge cardul pentru a-l dezvălui!</p>
+
+        <div class="card-scene" onclick="flipCard()">
+            <div class="card-3d" id="card3d">
+                <div class="card-face card-front">
+                    <div class="card-micro">Care este…</div>
+                    <div class="card-q-text" id="cQText">?</div>
+                </div>
+                <div class="card-face card-back" id="cardBack">
+                    <div class="card-micro" id="cResultLabel">Răspunsul</div>
+                    <div class="card-ans-text" id="cAnsText">?</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="ans-row" style="max-width:280px">
+            <input class="ans-input" id="cAns" type="number" placeholder="Răspunsul…"
+                   onkeydown="if(event.key==='Enter') flipCard()">
+            <button class="ok-btn" onclick="flipCard()">✓</button>
+        </div>
+
+        <button class="next-card-btn" id="nextCardBtn" onclick="nextCard()" style="display:none">
+            Next Card →
+        </button>
+    </div>
+</div>
+
+<!-- ======================== -->
+<!-- QUIZ SCREEN              -->
+<!-- ======================== -->
+<div class="screen" id="quizScreen">
+    <button class="back-btn" onclick="goHome()">← Back</button>
+
+    <div class="game-header">
+        <div class="score-badge">⭐ <span class="num" id="qScore">0</span></div>
+        <div class="prog-wrap"><div class="prog-bar" id="qProg"></div></div>
+        <div class="q-counter" id="qQNum">1/10</div>
+    </div>
+
+    <div class="quiz-wrap">
+        <div class="q-card">
+            <div class="q-label">What is…</div>
+            <div class="big-q" id="qQText">?</div>
+        </div>
+
+        <div class="choices-grid">
+            <button class="choice-btn" id="ch0" onclick="checkChoice(0)">?</button>
+            <button class="choice-btn" id="ch1" onclick="checkChoice(1)">?</button>
+            <button class="choice-btn" id="ch2" onclick="checkChoice(2)">?</button>
+            <button class="choice-btn" id="ch3" onclick="checkChoice(3)">?</button>
+        </div>
+    </div>
+</div>
+
+<!-- ======================== -->
+<!-- RESULTS SCREEN           -->
+<!-- ======================== -->
+<div class="screen" id="resultsScreen">
+    <div class="header">
+        <h1>🎉 Aventură în Quiz-ul de Matematică!</h1>
+    </div>
+    <div class="results-card">
+        <div class="res-emoji" id="resEmoji">🏆</div>
+        <div class="res-title" id="resTitle">Perfect!</div>
+        <div style="opacity:.5;font-size:.8rem">Scorul tău</div>
+        <div class="res-score" id="resScore">10/10</div>
+        <div class="res-msg" id="resMsg">Ești o super vedetă la matematică!</div>
+        <div class="res-btns">
+            <button class="btn-retry" onclick="retryGame()">🔄 Joacă din nou</button>
+            <button class="btn-home" onclick="goHome()">🏠 Schimbă setările</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ========================
+// STATE
+// ========================
+const state = {
+    operation: 'addition',
+    tableNumber: 3,
+    totalQ: 10,
+    mode: 'wheel',
+    questions: [],
+    currentQ: 0,
+    score: 0,
+    wheelAngle: 0,
+    wheelSpinning: false,
+    wheelOther: null,
+    cardFlipped: false
+};
+
+const WHEEL_NUMS = [1,2,3,4,5,6,7,8,9,10,11,12];
+const WHEEL_COLORS = [
+    '#fd79a8','#fdcb6e','#6c5ce7','#00b894',
+    '#e17055','#74b9ff','#a29bfe','#55efc4',
+    '#ff7675','#ffeaa7','#81ecec','#b2bec3'
+];
+
+// ========================
+// STARS
+// ========================
+(function createStars() {
+    const bg = document.getElementById('starsBg');
+    for (let i = 0; i < 55; i++) {
+        const s = document.createElement('div');
+        const sz = Math.random() * 2.5 + 0.5;
+        s.className = 'star';
+        s.style.cssText = `left:${Math.random()*100}%;top:${Math.random()*100}%;width:${sz}px;height:${sz}px;--d:${2+Math.random()*4}s;--dl:${Math.random()*5}s;--op:${0.2+Math.random()*0.8}`;
+        bg.appendChild(s);
+    }
+})();
+
+// ========================
+// SETUP
+// ========================
+function selectOp(btn) {
+    document.querySelectorAll('.op-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    state.operation = btn.dataset.op;
+}
+
+function selectMode(btn) {
+    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    state.mode = btn.dataset.mode;
+}
+
+// ========================
+// QUESTION GENERATION
+// ========================
+function makeQuestion(other) {
+    const t = state.tableNumber;
+    let text, answer;
+    switch (state.operation) {
+        case 'addition':
+            text   = `${t} + ${other}`;
+            answer = t + other;
+            break;
+        case 'subtraction':
+            if (t >= other) { text = `${t} − ${other}`; answer = t - other; }
+            else            { text = `${other} − ${t}`; answer = other - t; }
+            break;
+        case 'multiplication':
+            text   = `${t} × ${other}`;
+            answer = t * other;
+            break;
+        case 'division':
+            text   = `${t * other} ÷ ${t}`;
+            answer = other;
+            break;
+    }
+    return { text, answer };
+}
+
+function makeChoices(correct) {
+    const set = new Set([correct]);
+    const offs = [1,-1,2,-2,3,-3,4,-4,5,-5];
+    let i = 0;
+    while (set.size < 4) {
+        const w = correct + offs[i++ % offs.length];
+        if (w > 0) set.add(w);
+    }
+    return shuffle([...set]);
+}
+
+function generateQuestions() {
+    const qs = [];
+    const others = shuffle([...Array(12)].map((_,i) => i+1));
+    for (let i = 0; i < state.totalQ; i++) {
+        const other = others[i % 12];
+        const { text, answer } = makeQuestion(other);
+        qs.push({ text, answer, other, choices: makeChoices(answer) });
+    }
+    return qs;
+}
+
+function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i+1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+}
+
+// ========================
+// SCREENS
+// ========================
+function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo(0,0);
+}
+
+function goHome()    { showScreen('setupScreen'); }
+function retryGame() { startGame(); }
+
+function startGame() {
+    state.currentQ = 0;
+    state.score    = 0;
+    state.questions = generateQuestions();
+    if      (state.mode === 'wheel') initWheelGame();
+    else if (state.mode === 'cards') initCardsGame();
+    else                             initQuizGame();
+}
+
+// ========================
+// WHEEL GAME
+// ========================
+function drawWheel(angle) {
+    const canvas = document.getElementById('wheelCanvas');
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    const cx = W/2, cy = H/2, r = cx - 8;
+    const n = WHEEL_NUMS.length;
+    const slice = (2*Math.PI) / n;
+
+    ctx.clearRect(0, 0, W, H);
+
+    for (let i = 0; i < n; i++) {
+        const a0 = angle + i * slice;
+        const a1 = a0 + slice;
+
+        // Slice
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.arc(cx, cy, r, a0, a1);
+        ctx.closePath();
+        ctx.fillStyle = WHEEL_COLORS[i % WHEEL_COLORS.length];
+        ctx.fill();
+        ctx.strokeStyle = '#0f0e17';
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+
+        // Number
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(a0 + slice/2);
+        ctx.textAlign = 'right';
+        ctx.fillStyle = 'rgba(255,255,255,0.95)';
+        ctx.font = `bold ${Math.floor(r * 0.17)}px 'Fredoka One', cursive`;
+        ctx.shadowColor = 'rgba(0,0,0,0.6)';
+        ctx.shadowBlur   = 4;
+        ctx.fillText(WHEEL_NUMS[i], r - 10, 7);
+        ctx.restore();
+    }
+
+    // Center hub
+    ctx.beginPath();
+    ctx.arc(cx, cy, 26, 0, 2*Math.PI);
+    ctx.fillStyle = '#0f0e17';
+    ctx.fill();
+    ctx.strokeStyle = '#4d4d7e';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    ctx.font = `${Math.floor(r*0.14)}px Arial`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#fdcb6e';
+    ctx.shadowBlur = 0;
+    ctx.fillText('⭐', cx, cy);
+}
+
+function initWheelGame() {
+    state.wheelAngle    = 0;
+    state.wheelSpinning = false;
+    state.wheelOther    = null;
+
+    document.getElementById('wScore').textContent = '0';
+    document.getElementById('wProg').style.width  = '0%';
+    document.getElementById('wQNum').textContent  = `1/${state.totalQ}`;
+    document.getElementById('wQBox').style.display = 'none';
+    document.getElementById('spinBtn').disabled   = false;
+    document.getElementById('wAns').value = '';
+
+    drawWheel(state.wheelAngle);
+    showScreen('wheelScreen');
+}
+
+function spinWheel() {
+    if (state.wheelSpinning) return;
+    state.wheelSpinning = true;
+    document.getElementById('spinBtn').disabled = true;
+    document.getElementById('wQBox').style.display = 'none';
+    document.getElementById('wAns').value = '';
+
+    const extra     = 5 + Math.random() * 5;
+    const finalAng  = state.wheelAngle + extra * 2 * Math.PI + Math.random() * 2 * Math.PI;
+    const duration  = 3200 + Math.random() * 800;
+    const t0        = performance.now();
+    const startAng  = state.wheelAngle;
+
+    function animate(now) {
+        const p = Math.min((now - t0) / duration, 1);
+        const e = 1 - Math.pow(1 - p, 3);          // ease-out cubic
+        state.wheelAngle = startAng + (finalAng - startAng) * e;
+        drawWheel(state.wheelAngle);
+        if (p < 1) { requestAnimationFrame(animate); }
+        else       { state.wheelAngle = finalAng % (2*Math.PI); state.wheelSpinning = false; wheelLanded(); }
+    }
+    requestAnimationFrame(animate);
+}
+
+function wheelLanded() {
+    const n = WHEEL_NUMS.length;
+    const slice = (2*Math.PI) / n;
+    // pointer is at top = -PI/2 from horizontal
+    const norm = ((-state.wheelAngle - Math.PI/2) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI);
+    const idx  = Math.floor(norm / slice) % n;
+    state.wheelOther = WHEEL_NUMS[idx];
+
+    const { text, answer } = makeQuestion(state.wheelOther);
+    const box = document.getElementById('wQBox');
+    document.getElementById('wQText').textContent = `${text} = ?`;
+    box.dataset.answer = answer;
+    box.style.display  = 'block';
+    setTimeout(() => document.getElementById('wAns').focus(), 50);
+}
+
+function checkWheelAns() {
+    const input = document.getElementById('wAns');
+    const val   = parseInt(input.value);
+    const ans   = parseInt(document.getElementById('wQBox').dataset.answer);
+    if (isNaN(val)) return;
+
+    const ok = val === ans;
+    if (ok) state.score++;
+    showFeedback(ok);
+
+    setTimeout(() => {
+        state.currentQ++;
+        if (state.currentQ >= state.totalQ) { showResults(); return; }
+        document.getElementById('wScore').textContent = state.score;
+        document.getElementById('wProg').style.width  = (state.currentQ / state.totalQ * 100) + '%';
+        document.getElementById('wQNum').textContent  = `${state.currentQ+1}/${state.totalQ}`;
+        document.getElementById('wQBox').style.display = 'none';
+        document.getElementById('spinBtn').disabled   = false;
+        input.value = '';
+    }, 1100);
+}
+
+// ========================
+// CARDS GAME
+// ========================
+function initCardsGame() {
+    state.cardFlipped = false;
+    document.getElementById('cScore').textContent  = '0';
+    document.getElementById('cProg').style.width   = '0%';
+    document.getElementById('cQNum').textContent   = `1/${state.totalQ}`;
+    document.getElementById('nextCardBtn').style.display = 'none';
+    loadCard(0);
+    showScreen('cardsScreen');
+}
+
+function loadCard(idx) {
+    const q = state.questions[idx];
+    document.getElementById('cQText').textContent = `${q.text} = ?`;
+    document.getElementById('card3d').classList.remove('flipped');
+    document.getElementById('cAns').value    = '';
+    document.getElementById('cAns').disabled = false;
+    document.getElementById('nextCardBtn').style.display = 'none';
+    document.getElementById('cardBack').className = 'card-face card-back';
+    state.cardFlipped = false;
+    setTimeout(() => document.getElementById('cAns').focus(), 80);
+}
+
+function flipCard() {
+    if (state.cardFlipped) return;
+
+    const input = document.getElementById('cAns');
+    const val   = parseInt(input.value);
+    const q     = state.questions[state.currentQ];
+    if (isNaN(val)) return;
+
+    state.cardFlipped = true;
+    input.disabled    = true;
+
+    const ok = val === q.answer;
+    if (ok) state.score++;
+
+    const back  = document.getElementById('cardBack');
+    const label = document.getElementById('cResultLabel');
+    const ansEl = document.getElementById('cAnsText');
+
+    if (ok) {
+        back.className   = 'card-face card-back';
+        label.textContent = '🎉 Correct!';
+        ansEl.textContent = q.answer;
+    } else {
+        back.className   = 'card-face card-back wrong';
+        label.textContent = `Answer: ${q.answer}`;
+        ansEl.textContent = `${val} ✗`;
+    }
+
+    document.getElementById('card3d').classList.add('flipped');
+    document.getElementById('nextCardBtn').style.display = 'block';
+    document.getElementById('cScore').textContent = state.score;
+    document.getElementById('cProg').style.width  = ((state.currentQ+1) / state.totalQ * 100) + '%';
+    document.getElementById('cQNum').textContent  = `${state.currentQ+1}/${state.totalQ}`;
+    showFeedback(ok);
+}
+
+function nextCard() {
+    state.currentQ++;
+    if (state.currentQ >= state.totalQ) { showResults(); return; }
+    loadCard(state.currentQ);
+}
+
+// ========================
+// QUIZ GAME
+// ========================
+function initQuizGame() {
+    document.getElementById('qScore').textContent = '0';
+    document.getElementById('qProg').style.width  = '0%';
+    document.getElementById('qQNum').textContent  = `1/${state.totalQ}`;
+    loadQuizQ(0);
+    showScreen('quizScreen');
+}
+
+function loadQuizQ(idx) {
+    const q = state.questions[idx];
+    document.getElementById('qQText').textContent = `${q.text} = ?`;
+    for (let i = 0; i < 4; i++) {
+        const b = document.getElementById('ch'+i);
+        b.textContent    = q.choices[i];
+        b.className      = 'choice-btn';
+        b.disabled       = false;
+        b.dataset.value  = q.choices[i];
+    }
+}
+
+function checkChoice(i) {
+    const q   = state.questions[state.currentQ];
+    const btn = document.getElementById('ch'+i);
+    const val = parseInt(btn.dataset.value);
+    const ok  = val === q.answer;
+
+    document.querySelectorAll('.choice-btn').forEach(b => b.disabled = true);
+
+    if (ok) {
+        btn.classList.add('correct');
+        state.score++;
+    } else {
+        btn.classList.add('wrong');
+        document.querySelectorAll('.choice-btn').forEach(b => {
+            if (parseInt(b.dataset.value) === q.answer) b.classList.add('correct');
+        });
+    }
+
+    document.getElementById('qScore').textContent = state.score;
+    document.getElementById('qProg').style.width  = ((state.currentQ+1) / state.totalQ * 100) + '%';
+    document.getElementById('qQNum').textContent  = `${state.currentQ+1}/${state.totalQ}`;
+    showFeedback(ok);
+
+    setTimeout(() => {
+        state.currentQ++;
+        if (state.currentQ >= state.totalQ) { showResults(); return; }
+        loadQuizQ(state.currentQ);
+    }, 1100);
+}
+
+// ========================
+// FEEDBACK
+// ========================
+function showFeedback(ok) {
+    const good = ['🎉','⭐','🌟','✨','🏆','🎊','👏','🥳','💥','🔥'];
+    const bad  = ['😅','💪','🤔','😬','🙈','😤'];
+    document.getElementById('fbEmoji').textContent = ok
+        ? good[Math.floor(Math.random() * good.length)]
+        : bad [Math.floor(Math.random() * bad.length)];
+    const ov = document.getElementById('fbOverlay');
+    ov.classList.add('show');
+    setTimeout(() => ov.classList.remove('show'), 900);
+}
+
+// ========================
+// RESULTS
+// ========================
+function showResults() {
+    const pct = state.score / state.totalQ;
+    let emoji, title, msg;
+    if      (pct === 1)  { emoji='🏆'; title='PERFECT!';     msg='Every single answer right! You\'re a math genius! 🧠✨'; launchConfetti(); }
+    else if (pct >= 0.8) { emoji='🌟'; title='Excellent!';   msg='Amazing work! You\'re almost perfect! 🎉'; launchConfetti(); }
+    else if (pct >= 0.6) { emoji='😊'; title='Good job!';    msg='You\'re doing great! Keep practising! 💪'; }
+    else if (pct >= 0.4) { emoji='💪'; title='Keep going!';  msg='Practice makes perfect — try again! 🚀'; }
+    else                 { emoji='🤗'; title='Don\'t quit!'; msg='Math is hard but you can do it! Try again! ❤️'; }
+
+    document.getElementById('resEmoji').textContent = emoji;
+    document.getElementById('resTitle').textContent = title;
+    document.getElementById('resScore').textContent = `${state.score}/${state.totalQ}`;
+    document.getElementById('resMsg').textContent   = msg;
+    showScreen('resultsScreen');
+}
+
+// ========================
+// CONFETTI
+// ========================
+function launchConfetti() {
+    const stage = document.getElementById('confettiStage');
+    stage.innerHTML = '';
+    const cols = ['#fd79a8','#fdcb6e','#6c5ce7','#00b894','#e17055','#74b9ff','#a29bfe'];
+    for (let i = 0; i < 90; i++) {
+        const el = document.createElement('div');
+        el.className = 'conf';
+        const sz  = 7 + Math.random() * 9;
+        const col = cols[Math.floor(Math.random() * cols.length)];
+        el.style.cssText = `
+            left:${Math.random()*100}%;
+            width:${sz}px; height:${sz}px;
+            background:${col};
+            border-radius:${Math.random()>.5?'50%':'3px'};
+            --dur:${2+Math.random()*2}s;
+            --dl:${Math.random()*1.2}s;
+            --dx:${(Math.random()-.5)*220}px;
+        `;
+        stage.appendChild(el);
+    }
+    setTimeout(() => { stage.innerHTML = ''; }, 5000);
+}
+
+// ========================
+// INIT
+// ========================
+drawWheel(0);
+</script>
+</body>
+</html>

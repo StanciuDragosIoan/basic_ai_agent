@@ -345,6 +345,92 @@ body {
   }
 }
 
+/* === CODE BLOCKS IN CHAT === */
+
+.bubble.bot:has(.code-block) {
+  max-width: 92%;
+}
+
+.code-block {
+  position: relative;
+  background: #16161e;
+  border-radius: 8px;
+  margin: 6px 0;
+  overflow: hidden;
+  font-family: "Fira Code", "Consolas", "Monaco", monospace;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.code-lang {
+  display: block;
+  background: #222230;
+  color: #666;
+  font-size: 0.72rem;
+  padding: 4px 12px;
+  letter-spacing: 0.05em;
+  text-transform: lowercase;
+  font-family: inherit;
+}
+
+.code-block pre {
+  margin: 0;
+  padding: 12px 14px;
+  overflow-x: auto;
+  color: #4ade80;
+  font-size: 0.84rem;
+  line-height: 1.65;
+}
+
+.code-block pre::-webkit-scrollbar { height: 4px; }
+.code-block pre::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+
+.code-block code {
+  font-family: inherit;
+}
+
+.copy-btn {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  background: rgba(255, 255, 255, 0.07);
+  color: #888;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 5px;
+  padding: 3px 9px;
+  font-size: 0.7rem;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  font-family: inherit;
+}
+
+.copy-btn:hover {
+  background: #4ade80;
+  color: #000;
+  border-color: #4ade80;
+}
+
+.copy-btn.copied {
+  background: #4ade80;
+  color: #000;
+  border-color: #4ade80;
+}
+
+.inline-code {
+  background: rgba(0, 0, 0, 0.07);
+  color: #d63369;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-family: "Fira Code", "Consolas", monospace;
+  font-size: 0.87em;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+body.theme-brainy .inline-code {
+  background: rgba(124, 111, 255, 0.15);
+  color: #b39dff;
+  border-color: rgba(124, 111, 255, 0.2);
+}
+
 /* ============================================
    BRAINY-CHAN — DARK PURPLE THEME
    Apply via <body class="theme-brainy">

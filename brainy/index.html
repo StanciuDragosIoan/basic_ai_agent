@@ -44,6 +44,7 @@
       </form>
     </div>
 
+    <script src="/chat-utils.js"></script>
     <script>
       const form = document.getElementById("chat-form");
       const input = document.getElementById("input");
@@ -54,11 +55,14 @@
       function addMessage(role, text) {
         const bubble = document.createElement("div");
         bubble.className = `bubble ${role}`;
-        bubble.textContent = text;
+        if (role === "bot") {
+          bubble.appendChild(formatContent(text));
+        } else {
+          bubble.textContent = text;
+        }
         messages.appendChild(bubble);
         messages.scrollTop = messages.scrollHeight;
       }
-
       function setLoading(on) {
         sendBtn.disabled = on;
         input.disabled = on;
