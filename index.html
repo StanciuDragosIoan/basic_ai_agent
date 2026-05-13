@@ -97,7 +97,7 @@
           const data = await res.json();
           addMessage("bot", data.reply);
         } catch (err) {
-          addMessage("error", "Oops, something went wrong. Try again!");
+          addMessage("error", "Oops, something went wrong. Try again!", JSON.stringify(error));
         } finally {
           setLoading(false);
           input.focus();

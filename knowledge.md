@@ -137,11 +137,35 @@ pre.conr
 
 This unloads the service.
 
+if it does not work try
+
+pre.conr
+sudo launchctl stop com.zscaler.tunnel
+pre.conr
+
+more commands:
+
+pre.conr
+// Stop the tunnel first (this is the actual traffic interceptor)
+sudo launchctl stop com.zscaler.tunnel
+
+// Unload all daemons
+sudo launchctl unload /Library/LaunchDaemons/com.zscaler.tunnel.plist
+sudo launchctl unload /Library/LaunchDaemons/com.zscaler.UPMServiceController.plist
+sudo launchctl unload /Library/LaunchDaemons/com.zscaler.zdp.pd.plist
+sudo launchctl unload /Library/LaunchDaemons/com.zscaler.zdp.esd.plist
+
+// Remove the network extension (the packet filter is what actually intercepts traffic)
+sudo systemextensionsctl uninstall - com.zscaler.zscaler
+pre.conr
+
 After that you can check with this that it s not present anymore
 
 pre.conr
 sudo launchctl list | grep -i zscaler
 pre.conr
+
+
 
 \nl
 

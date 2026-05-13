@@ -4,51 +4,70 @@ import "dotenv/config";
 import path from "path";
 
 const filePath = path.join(process.cwd(), "knowledge.md");
-
-const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY,
-});
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 const knowledgeRaw = fs.readFileSync(filePath, "utf8");
+const chunks = knowledgeRaw
+  .split("###")
+  .map(c => c.trim())
+  .filter(c => c.length > 0);
 
-const chunks = knowledgeRaw.split("###");
-// Memory persists per function instance (good enough for personal projects)
+function findRelevantChunks(query, topN = 2) {
+  const stopWords = new Set(["what", "how", "the", "is", "are", "do", "does", "can", "and", "for"]);
+  const queryWords = new Set(
+    query.toLowerCase().split(/\W+/).filter(w => w.length > 3 && !stopWords.has(w))
+  );
+  if (queryWords.size === 0) return chunks.slice(0, topN);
+  return chunks
+    .map(chunk => ({
+      chunk,
+      score: chunk.toLowerCase().split(/\W+/).filter(w => queryWords.has(w)).length
+    }))
+    .filter(s => s.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, topN)
+    .map(s => s.chunk);
+}
+
 const memory = [
   {
     role: "system",
-    content: `
-You are a helpful conversational AI agent.
-Your name is Brainy-chan.
-You remember the conversation.
+    content: `You are Brainy-chan, a helpful and knowledgeable AI assistant.
 Be concise and clear.
-Use the following knowledge:
-  ${chunks}
-    `,
-  },
+You have access to a knowledge base — relevant sections will be provided with each question.
+If no knowledge context is provided, answer from your general knowledge and say so.`
+  }
 ];
 
-console.log("test", JSON.stringify(memory, null, 2));
 export default async function handler(req, res) {
-  console.log("PATH", filePath);
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method Not Allowed" });
-  }
+  if (req.method !== "POST") return res.status(405).json({ error: "Method Not Allowed" });
 
   try {
     const { message } = req.body;
-    memory.push({ role: "user", content: message });
+
+    const relevantChunks = findRelevantChunks(message, 2);
+    const knowledgeContext = relevantChunks.length > 0
+      ? `\n\nRelevant knowledge:\n${relevantChunks.join("\n\n---\n\n")}`
+      : "";
+
+    const messagesForThisCall = [
+      ...memory,
+      { role: "user", content: `${message}${knowledgeContext}` }
+    ];
 
     const response = await groq.chat.completions.create({
       model: "llama-3.1-8b-instant",
-      messages: memory,
+      messages: messagesForThisCall
     });
 
     const reply = response.choices[0].message.content;
+
+    memory.push({ role: "user", content: message });
     memory.push({ role: "assistant", content: reply });
 
     res.status(200).json({ reply });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "AI-chan failed 😭" });
+    res.status(500).json({ error: "Brainy-chan failed 😭" });
   }
 }
