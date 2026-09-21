@@ -172,6 +172,42 @@ pre.conr
 what does it mean to unload a service
 Unloading a service means stopping it from running and removing it from the system’s active service list, at least temporarily. On macOS, services are managed by a system called _launchd_, and you can control them using the launchctl command in Terminal.
 
+### How to Enable Zscaler service again
+
+run
+
+pre.conr
+sudo launchctl load /Library/LaunchDaemons/com.zscaler.tunnel.plist
+sudo launchctl load /Library/LaunchDaemons/com.zscaler.UPMServiceController.plist
+sudo launchctl load /Library/LaunchDaemons/com.zscaler.zdp.pd.plist
+sudo launchctl load /Library/LaunchDaemons/com.zscaler.zdp.esd.plist
+pre.conr
+
+Then start the tunnel:
+
+pre.conr
+sudo launchctl start com.zscaler.tunnel
+pre.conr
+
+If you previously removed the network extension with systemextensionsctl uninstall,
+loading the daemons alone won't bring it back — you'll need to reinstall/relaunch
+the Zscaler app (open Zscaler Client Connector from Applications) so it re-registers
+the system extension, then approve it again in
+System Settings > Privacy & Security > Login Items & Extensions if macOS prompts you.
+
+Check it's running with:
+
+pre.conr
+sudo launchctl list | grep -i zscaler
+pre.conr
+
+\nl
+
+what does it mean to load a service
+Loading a service tells launchd to register it and start managing it again (the
+opposite of unload/bootout) — it goes back into the active service list, but that
+doesn't always mean it's fully connected until the tunnel process itself starts.
+
 ### How set up quick docker container postgres
 
 pre.conr
