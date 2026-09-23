@@ -54,8 +54,8 @@ export default async function handler(req, res) {
     ];
 
     const response = await groq.chat.completions.create({
-      model: "llama-3.1-8b-instant",
-      messages: messagesForThisCall
+      model: 'openai/gpt-oss-20b',
+      messages: messagesForThisCall,
     });
 
     const reply = response.choices[0].message.content;

@@ -78,8 +78,8 @@ app.post("/api/chat", async (req, res) => {
     ];
 
     const response = await groq.chat.completions.create({
-      model: "llama-3.1-8b-instant",
-      messages: messagesForThisCall
+      model: 'openai/gpt-oss-20b',
+      messages: messagesForThisCall,
     });
 
     const reply = response.choices[0].message.content;
@@ -117,8 +117,8 @@ app.post("/api/chat_brainy", async (req, res) => {
     ];
 
     const response = await groq.chat.completions.create({
-      model: "llama-3.1-8b-instant",
-      messages: messagesForThisCall
+      model: 'openai/gpt-oss-20b',
+      messages: messagesForThisCall,
     });
 
     const reply = response.choices[0].message.content;

@@ -156,8 +156,19 @@ sudo launchctl unload /Library/LaunchDaemons/com.zscaler.zdp.pd.plist
 sudo launchctl unload /Library/LaunchDaemons/com.zscaler.zdp.esd.plist
 
 // Remove the network extension (the packet filter is what actually intercepts traffic)
-sudo systemextensionsctl uninstall - com.zscaler.zscaler
+// Syntax is: systemextensionsctl uninstall <teamID> <bundleID>
+sudo systemextensionsctl uninstall PCBCQZJ7S7 com.zscaler.zscaler.pktfilter
 pre.conr
+
+Get the real teamID and bundleID from:
+
+pre.conr
+systemextensionsctl list | grep -i zscaler
+pre.conr
+
+Careful: removing the extension is a bigger step than just stopping the tunnel.
+Prefer only booting out the daemons if you just need traffic to stop being
+intercepted for a while - the extension is harder to bring back cleanly.
 
 After that you can check with this that it s not present anymore
 
@@ -174,39 +185,106 @@ Unloading a service means stopping it from running and removing it from the syst
 
 ### How to Enable Zscaler service again
 
-run
+**Just reboot.** Do not try to bring it back with launchctl by hand.
 
 pre.conr
-sudo launchctl load /Library/LaunchDaemons/com.zscaler.tunnel.plist
-sudo launchctl load /Library/LaunchDaemons/com.zscaler.UPMServiceController.plist
-sudo launchctl load /Library/LaunchDaemons/com.zscaler.zdp.pd.plist
-sudo launchctl load /Library/LaunchDaemons/com.zscaler.zdp.esd.plist
+sudo reboot
 pre.conr
 
-Then start the tunnel:
+After the reboot, open Zscaler Client Connector from Applications and let it
+connect on its own. If macOS prompts, approve the extension in
+System Settings > Privacy & Security > Login Items & Extensions.
+
+\nl
+
+Why not the manual way: booting out the daemons by hand leaves orphaned
+processes (e.g. UPMServiceController still running but no longer tracked by
+launchd) that keep holding the job's MachServices. launchd then refuses to
+re-register the job and you get:
 
 pre.conr
-sudo launchctl start com.zscaler.tunnel
+Load failed: 5: Input/output error
+Bootstrap failed: 5: Input/output error
 pre.conr
 
-If you previously removed the network extension with systemextensionsctl uninstall,
-loading the daemons alone won't bring it back — you'll need to reinstall/relaunch
-the Zscaler app (open Zscaler Client Connector from Applications) so it re-registers
-the system extension, then approve it again in
-System Settings > Privacy & Security > Login Items & Extensions if macOS prompts you.
+No amount of load/bootstrap fixes that - only a reboot clears the orphans and
+resets the launchd domain. Zscaler is a vendor-managed, system-extension-backed
+agent, so hand-bootstrapping its daemons is not a supported path.
 
-Check it's running with:
+\nl
+
+There is also a persistent per-service "disabled" bit, separate from
+load/unload, that silently makes load a no-op. Check and clear it with:
 
 pre.conr
-sudo launchctl list | grep -i zscaler
+sudo launchctl print-disabled system | grep -i zscaler
+sudo launchctl enable system/com.zscaler.tunnel
+pre.conr
+
+#### How to verify it is actually working
+
+Do not trust the GUI - it can sit on "connecting" for a long time when the
+machine is loaded, even though traffic is already being intercepted. Check the
+TLS issuer instead:
+
+pre.conr
+curl -sv -o /dev/null https://example.com 2>&1 | grep -i "issuer:"
+pre.conr
+
+Intercepted (Zscaler is working):
+
+pre.conr
+issuer: C=US; ST=California; O=Zscaler Inc.; OU=Zscaler Inc.; CN=Zscaler Intermediate Root CA (zscloud.net) (t)
+pre.conr
+
+Not intercepted (Zscaler is down / bypassed) - you get the site's real issuer:
+
+pre.conr
+issuer: C=US; O=Google Trust Services; CN=WR3
+pre.conr
+
+Also confirm the tunnel process actually exists (this is the real traffic
+interceptor - the daemon can be "loaded" with no process running):
+
+pre.conr
+pgrep -fl ZscalerTunnel
 pre.conr
 
 \nl
 
-what does it mean to load a service
-Loading a service tells launchd to register it and start managing it again (the
-opposite of unload/bootout) — it goes back into the active service list, but that
-doesn't always mean it's fully connected until the tunnel process itself starts.
+Expect very high CPU/load for ~10-15 min after a reboot: the ZDP classifier,
+Microsoft Defender netext and Jamf Protect all scan at once. That is what makes
+the GUI lag behind reality.
+
+### Zscaler blocks claude update (403)
+
+Symptom: _claude update_ fails with
+
+pre.conr
+Error: Failed to install native update
+AxiosError: Request failed with status code 403
+pre.conr
+
+but _claude doctor_ says "No installation issues found".
+
+\nl
+
+Cause: Zscaler policy blocks the large native binary download. Small files
+(the version string, manifest.json) pass fine, so it looks like the network
+works. Confirm it is Zscaler and not Anthropic with:
+
+pre.conr
+curl -sv -o /dev/null "https://downloads.claude.ai/claude-code-releases/<version>/darwin-arm64/claude" 2>&1 | tail -20
+pre.conr
+
+A Zscaler block shows _Server: Zscaler/6.2_ and a policy header like
+_X-UPM-POL-INFO: pol_reason:39, mod_id:16, sme_id:15024_ - give those codes to
+IT, they can look up exactly which rule fired.
+
+\nl
+
+Fix: ask IT to allowlist _downloads.claude.ai_ for binary downloads. Disabling
+Zscaler to force the update works but costs you a reboot to get Zscaler back.
 
 ### How set up quick docker container postgres
 
